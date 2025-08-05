@@ -1,0 +1,36 @@
+import requests
+from bs4 import BeautifulSoup
+
+def fetch_headlines(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Check for HTTP errors
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching the website: {e}")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    # Many news sites use <h2> or <h3> for headlines
+    # You can tweak tag/class based on site structure
+    headlines = [h2.get_text().strip() for h2 in soup.find_all('h2') if h2.get_text().strip()]
+    
+    return headlines
+
+def save_headlines_to_file(headlines, filename="headlines.txt"):
+    with open(filename, 'w', encoding='utf-8') as file:
+        for idx, headline in enumerate(headlines, start=1):
+            file.write(f"{idx}. {headline}\n")
+    print(f"Headlines saved to {filename}")
+
+if __name__ == "__main__":
+    url = "https://www.bbc.com/news"  # You can change this to any news website
+    print(f"Fetching headlines from: {url}")
+    
+    headlines = fetch_headlines(url)
+    
+    if headlines:
+        save_headlines_to_file(headlines)
+        print("Task completed successfully!")
+    else:
+        print("No headlines found or failed to scrape.")
